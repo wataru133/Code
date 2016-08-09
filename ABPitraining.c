@@ -66,13 +66,13 @@ void train(obser *y,hmm *A,hmm *B,double *Pi_cb)
             temp=0;
             for (k=1;k<=Kmax;k++)
                 {
-                    B[i][k]=(double)rand()/(double)RAND_MAX; //B[k][i]=(rand())/(float(RAND_MAX)+1);
-                    temp=temp+B[i][k];
+                    B[k][i]=(double)rand()/(double)RAND_MAX; //B[k][i]=(rand())/(float(RAND_MAX)+1);
+                    temp=temp+B[k][i];
                 }
 
             for (k=1;k<=Kmax;k++)                              //Normalized
                 {
-                     B[i][k]= B[i][k]/temp;                   //chuan hoa
+                     B[k][i]= B[k][i]/temp;                   //chuan hoa
                 }
 
         }	
