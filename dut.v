@@ -1,3 +1,4 @@
+
 //-----------------------------------------------------------------
 //// Project Name : Exercise 1
 //// : bound flasher
@@ -12,7 +13,7 @@
 //// Version Date Author Description
 ////---------------------------------------------------------------
 
-module sys_ctl ( clk, rst_n, flick, lp, go_up, go_dwn ) ;
+module sys_ctl ( clk, rst_n, flick, lp) ;
 
 // parameters
     parameter INIT    = 3'b000 ; // initial state all lamp is off
@@ -37,7 +38,7 @@ module sys_ctl ( clk, rst_n, flick, lp, go_up, go_dwn ) ;
 
     wire clk, rst_n ;
     wire flick ;
-    wire [MX_LP-1:0] lp ; // lamps
+	reg [MX_LP-1:0] lp ; // lamps
 
 
 //internal variables
@@ -46,7 +47,7 @@ module sys_ctl ( clk, rst_n, flick, lp, go_up, go_dwn ) ;
 
     always @ ( posedge clk or negedge rst_n ) begin
         if ( rst_n==1'b0 ) begin // initialize state
-            f_state[2:0] <= #FF_DLY INTL ;
+            f_state[2:0] <= #FF_DLY INIT ;
             end
         else begin
             f_state[2:0] <= #FF_DLY next_f_state[2:0] ;
@@ -105,98 +106,40 @@ module sys_ctl ( clk, rst_n, flick, lp, go_up, go_dwn ) ;
 
     always @ ( f_state or flick ) begin
             case ( f_state )
-                    INIT : begin
-                            go_up = ( flick )? 1 : 0 ;
-                            go_dwn = 0 ;
+                    INIT 	: begin
+                            lp = ( flick )? 16'h01 : 16'h01 ;
                     end
 
-                    ST_0_15 , ST_5_10 , ST_0_5  : begin
-                            go_up = 1 ;
-                            go_dwn = 0 ;
+                    ST_0_15	: begin
+                            lp = lp<<1;
+							lp = lp | 16'h01;
                     end
 
-                   ST_5_0 , ST_15_5, : begin
-                            go_up = 0 ;
-                            go_dwn = 1 ;
+					ST_15_5 : begin
+                            lp = lp>>1;
                     end
 
-                    ST_0_15,ST_0_15,ST_0_15, : begin
-                            go_up = ( flick )? 1 : 0 ;
-                            go_dwn = ( flick )? 0 : 1 ;
+                    ST_5_10	: begin
+                            lp = lp<<1;
+							lp = lp | 16'h01;
+                    end
+					
+					ST_10_0	: begin
+                            lp = lp>>1;
+                    end
+					
+					ST_0_5	: begin
+                            lp = lp<<1;
+							lp = lp | 16'h01;
+                    end
+					
+					ST_5_0	: begin
+                            lp = lp>>1;
                     end
 
                     default : begin
-                            go_up = 1'bx ;
-                            go_dwn = 1'bx ;
+                            lp = 1'bx ;
                     end
             endcase
     end
 endmodule
-
-module lamp_logic ( clk, rst_n, go_up, go_dwn, lp ) ;
-
-    parameter FF_DLY = 1 ;
-    parameter MX_LP = 16 ;
-    
-    input clk, rst_n ;
-    input go_up, go_dwn ;
-
-    output [MX_LP -1:0] lp ;
-
-    wire clk, rst_n ;
-    wire go_up, go_dwn ;
-
-    reg [MX_LP -1:0] lp ; // FF
-    reg [MX_LP -1:0] next_lp ; // non-FF
-
-    always @ ( posedge clk or negedge rst_n ) begin
-        if ( rst_n==1'b0 ) begin
-                lp <=#FF_DLY { MX_LP { 1'b0 } } ;
-        end
-        else begin
-                lp <=#FF_DLY next_lp ;
-        end
-    end
-
-    always @ ( go_up or go_dwn or lp ) begin
-        if ( go_up ) begin
-                if ( lp == { MX_LP { 1'b0 } } ) begin
-                        next_lp = { { (MX_LP-1) { 1'b0 } }, 1'b1 } ;
-                end
-                else begin
-                        next_lp = lp << 1 ;
-                end
-        end
-        else begin
-                if ( go_dwn ) begin
-                        next_lp = lp >> 1 ;
-                end
-                else begin
-                        next_lp = lp ;
-                end
-        end
-    end
-endmodule
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
