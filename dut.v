@@ -86,11 +86,11 @@ module sys_ctl ( clk, rst_n, flick, lp,next_f_state ) ;
                     end
 
                     ST_5_10 : begin
-                            next_f_state[2:0] = ( lp[10])? ST_10_0 : f_state[2:0] ;
+                            next_f_state[2:0] = ( lp[9])? ST_10_0 : f_state[2:0] ;
                     end
 
                     ST_10_0 : begin
-                        if ( lp[0]==0) begin
+                        if ( lp[1]==0) begin
                             next_f_state[2:0] = ( flick )? ST_5_10 : ST_0_5 ;
                         end 
                         else if ( (lp[KB_PT_1-1]==1)&&(lp[KB_PT_1]==0)) begin
@@ -138,7 +138,7 @@ module sys_ctl ( clk, rst_n, flick, lp,next_f_state ) ;
                     end
 					
 					ST_0_5	: begin
-							next_lp = lp | 16'h01;                           
+                            next_lp = (lp<<1)+1;
                     end
 					
 					ST_5_0	: begin
