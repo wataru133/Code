@@ -1,4 +1,3 @@
-
 //-----------------------------------------------------------------
 //// Project Name : Exercise 1
 //// : bound flasher
@@ -13,7 +12,7 @@
 //// Version Date Author Description
 ////---------------------------------------------------------------
 
-module sys_ctl ( clk, rst_n, flick, lp) ;
+module sys_ctl ( clk, rst_n, flick, lp,next_f_state ) ;
 
 // parameters
     parameter INIT    = 3'b000 ; // initial state all lamp is off
@@ -32,13 +31,14 @@ module sys_ctl ( clk, rst_n, flick, lp) ;
 // port definition
     input clk, rst_n ;
     input flick ; // input signal to start system
-    input [MX_LP-1:0] lp ;
+    output [MX_LP-1:0] lp ;
+    output [2:0] next_f_state ;
 
-    output go_up, go_dwn ;
 
     wire clk, rst_n ;
     wire flick ;
 	reg [MX_LP-1:0] lp ; // lamps
+    reg [MX_LP-1:0] next_lp;
 
 
 //internal variables
@@ -54,6 +54,17 @@ module sys_ctl ( clk, rst_n, flick, lp) ;
         end
     end
 
+    always @ ( posedge clk or negedge rst_n ) begin
+        if ( rst_n==1'b0 ) begin // initialize state
+            lp[MX_LP-1:0] <= #FF_DLY 16'h0000 ;
+            end
+        else begin
+            lp[MX_LP-1:0]  <= #FF_DLY next_lp[MX_LP-1:0]  ;
+        end
+    end
+
+
+
     always @ ( f_state or flick or lp ) begin
             case ( f_state[2:0] )
 
@@ -62,11 +73,11 @@ module sys_ctl ( clk, rst_n, flick, lp) ;
                     end
 
                     ST_0_15 : begin
-                            next_f_state[2:0] = ( lp [MX_LP-1] )?  ST_15_5 : f_state[2:0] ;
+                            next_f_state[2:0] = ( lp [MX_LP-2] )?  ST_15_5 : f_state[2:0] ;
                     end
 
                     ST_15_5 : begin
-                        if ( (lp[KB_PT_1-1]==1)&&(lp[KB_PT_1]==0)) begin
+                        if ( (lp[KB_PT_1]==1)&&(lp[KB_PT_1+1]==0)) begin
                             next_f_state[2:0] = ( flick )? ST_0_15 : ST_5_10 ;
                         end
                         else begin
@@ -104,42 +115,59 @@ module sys_ctl ( clk, rst_n, flick, lp) ;
             endcase
     end
 
-    always @ ( f_state or flick ) begin
+    always @ ( f_state or flick or lp ) begin
             case ( f_state )
                     INIT 	: begin
-                            lp = ( flick )? 16'h01 : 16'h01 ;
+                            next_lp = ( flick )? 16'h01 : 16'h00 ;
                     end
 
                     ST_0_15	: begin
-                            lp = lp<<1;
-							lp = lp | 16'h01;
+                            next_lp = (lp<<1)+1;
                     end
 
 					ST_15_5 : begin
-                            lp = lp>>1;
+                            next_lp = lp>>1;
                     end
 
                     ST_5_10	: begin
-                            lp = lp<<1;
-							lp = lp | 16'h01;
+                            next_lp = (lp<<1)+1;
                     end
 					
 					ST_10_0	: begin
-                            lp = lp>>1;
+                            next_lp = lp>>1;
                     end
 					
 					ST_0_5	: begin
-                            lp = lp<<1;
-							lp = lp | 16'h01;
+							next_lp = lp | 16'h01;                           
                     end
 					
 					ST_5_0	: begin
-                            lp = lp>>1;
+                            next_lp = lp>>1;
                     end
 
                     default : begin
-                            lp = 1'bx ;
+                            next_lp = 1'bx ;
                     end
             endcase
     end
+endmodule
+
+module bound_flasher ( clk, rst_n, flick, a_lamp, a_next_state) ;
+
+    parameter MX_LP = 16 ; // number of lamps
+
+    input clk, rst_n ;
+    input flick ;
+
+    output [MX_LP-1:0] a_lamp ;
+    output [2:0] a_next_state;
+
+    wire clk, rst_n ;
+    wire flick ;
+    wire [MX_LP-1:0] a_lamp ;
+    wire [2:0] a_next_state;
+
+    sys_ctl sys_ctl_01 ( .clk(clk), .rst_n(rst_n), .flick(flick), .lp(a_lamp),
+            .next_f_state(a_next_state) ) ;
+
 endmodule
