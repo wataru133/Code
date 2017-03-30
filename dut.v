@@ -43,7 +43,7 @@ module sys_ctl ( clk, rst_n, flick, lp,next_f_state ) ;
 
 //internal variables
     reg [2:0] f_state ; // FF for state
-    reg [2:0] next_f_state ; // non-FF
+    reg [2:0] next_f_state ; 
 
     always @ ( posedge clk or negedge rst_n ) begin
         if ( rst_n==1'b0 ) begin // initialize state
@@ -102,7 +102,7 @@ module sys_ctl ( clk, rst_n, flick, lp,next_f_state ) ;
                     end
 
                     ST_0_5  : begin
-                            next_f_state[2:0] = ((lp[KB_PT_1]==1)&&(lp[KB_PT_1+1]==0)) ? ST_5_0 : f_state[2:0]  ;
+                            next_f_state[2:0] = ((lp[KB_PT_1-1]==1)&&(lp[KB_PT_1]==0)) ? ST_5_0 : f_state[2:0]  ;
                     end
 
                     ST_5_0  : begin
