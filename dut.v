@@ -43,16 +43,16 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
 
     always @ (posedge clk or negedge rst_n) begin
         if (rst_n==0) begin
-            buf_0_cnt <= 2'b01;
-            buf_1_cnt <= 2'b01;
-            buf_2_cnt <= 2'b01;
-            buf_3_cnt <= 2'b01;      
+            next_buf_0_cnt <= 2'b01;
+            next_buf_1_cnt <= 2'b01;
+            next_buf_2_cnt <= 2'b01;
+            next_buf_3_cnt <= 2'b01;      
         end
         else begin
-            buf_0_cnt <= buf_0_cnt;
-            buf_1_cnt <= buf_1_cnt;
-            buf_2_cnt <= buf_2_cnt;
-            buf_3_cnt <= buf_3_cnt;
+            next_buf_0_cnt <= buf_0_cnt;
+            next_buf_1_cnt <= buf_1_cnt;
+            next_buf_2_cnt <= buf_2_cnt;
+            next_buf_3_cnt <= buf_3_cnt;
         end
     end
 
@@ -102,27 +102,7 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
     end
 
     always @ ( ref_seq[5:0] or ref_numbr[1:0] ) begin
-        case ( ref_numbr[1:0] )
-            2'b00 : begin // update pattern 000xxx
-                next_seq[5:0] = { 3'b000, ref_seq[2:0] } ;
-            end
-
-            2'b01 : begin // update pattern 1xx00x
-                next_seq[5:0] = { 1'b1, ref_seq[4:3], 2'b0, ref_seq[0] } ;
-            end
-
-            2'b10 : begin // update pattern x1x1x0
-                next_seq[5:0] = { ref_seq[5], 1'b1,ref_seq[3],1'b1,ref_seq[1], 1'b0 } ;
-            end
-
-            2'b11 : begin // update pattern xx1x11
-                next_seq[5:0] = { ref_seq[5:4], 1'b1, ref_seq[2], 2'b11 } ;
-            end
-
-            default : begin
-                next_seq[5:0] = 6'bxxxxxx ;
-            end
-        endcase
+        ref_seq[5]= (next_buf_0_cnt)
     end
 
     always @ ( ref_seq[5:0] or ref_numbr[1:0] ) begin
