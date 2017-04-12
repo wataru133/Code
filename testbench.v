@@ -49,6 +49,16 @@ end
 
     initial begin
               ref = 2'bxx;
+        #(CYCL*3) ref = 2'b00;
+        #CYCL ref = 2'b01;
+        #CYCL ref = 2'b10;
+        #CYCL ref = 2'b11;
+        #CYCL ref = 2'b01;
+        #CYCL ref = 2'b00;
+        #CYCL ref = 2'b10;
+        #CYCL ref = 2'b00;
+        #CYCL ref = 2'b00;
+        #CYCL ref = 2'b00;
         #CYCL ref = 2'b00;
         #CYCL ref = 2'b10;
         #CYCL ref = 2'b00;
@@ -60,6 +70,10 @@ end
         #CYCL ref = 2'b11;
         #CYCL ref = 2'b00;
         #CYCL ref = 2'b00;
+        #CYCL ref = 2'b00;
+        #CYCL ref = 2'b10;
+        #CYCL ref = 2'b00;
+        #CYCL ref = 2'b11;
         #CYCL ref = 2'b10;
         #CYCL ref = 2'b00;
         #CYCL ref = 2'b11;

@@ -112,26 +112,70 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
         ref_seq[0]= (buf_2_cnt<buf_3_cnt)? 1:0;
     end
 
-    always @ ( ref_seq[5:0] or ref_buf_numbr[1:0] ) begin
-        case ( ref_buf_numbr[1:0] )
-            2'b00 : begin 
-                next_buf_0_cnt =  buf_0_cnt + 2'b01;
-            end
+    always @ ( ref_buf_numbr[1:0] or buf_0_cnt or buf_1_cnt or buf_2_cnt or buf_3_cnt ) begin
+        if ((buf_0_cnt == 2'b11 )&&(buf_1_cnt == 2'b11 )&&(buf_2_cnt == 2'b11 )&&(buf_3_cnt == 2'b11 )) begin
+            next_buf_0_cnt =  2'b01;
+            next_buf_1_cnt =  2'b01;
+            next_buf_2_cnt =  2'b01;
+            next_buf_3_cnt =  2'b01;
+        end
+        else begin
+            case ( ref_buf_numbr[1:0] )
+                2'b00 : begin
+                    if ( buf_0_cnt == 2'b11 ) begin
+                        next_buf_0_cnt = 2'b11;
+                    end
+                    else begin
+                        next_buf_0_cnt =  buf_0_cnt + 2'b01;
+                        next_buf_1_cnt =  buf_1_cnt;
+                        next_buf_2_cnt =  buf_2_cnt;
+                        next_buf_3_cnt =  buf_3_cnt;
+                    end
+                end
 
-            2'b01 : begin 
-                 next_buf_1_cnt =  buf_1_cnt + 2'b01;   
-            end
+                2'b01 : begin 
+                    if ( buf_1_cnt == 2'b11 ) begin
+                        next_buf_1_cnt = 2'b11;       
+                    end
+                    else begin
+                        next_buf_1_cnt =  buf_1_cnt + 2'b01;   
+                        next_buf_0_cnt =  buf_0_cnt;
+                        next_buf_2_cnt =  buf_2_cnt;
+                        next_buf_3_cnt =  buf_3_cnt;
+                    end
+                end
 
-            2'b10 : begin 
-                next_buf_2_cnt =  buf_2_cnt + 2'b01;
-            end
+                2'b10 : begin
+                    if ( buf_2_cnt == 2'b11 ) begin
+                        next_buf_2_cnt = 2'b11;       
+                    end
+                    else begin
+                        next_buf_2_cnt =  buf_2_cnt + 2'b01;
+                        next_buf_0_cnt =  buf_0_cnt;
+                        next_buf_1_cnt =  buf_1_cnt;
+                        next_buf_3_cnt =  buf_3_cnt;
+                    end
+                end
 
-            2'b11 : begin 
-                next_buf_3_cnt =  buf_3_cnt + 2'b01; 
-            end
+                2'b11 : begin 
+                    if ( buf_3_cnt == 2'b11 ) begin
+                        next_buf_3_cnt = 2'b11;       
+                    end
+                    else begin
+                        next_buf_3_cnt =  buf_3_cnt + 2'b01; 
+                        next_buf_0_cnt =  buf_0_cnt;
+                        next_buf_1_cnt =  buf_1_cnt;
+                        next_buf_2_cnt =  buf_2_cnt;
+                    end
+                end
                 
-        endcase 
+                default: begin
+                    next_buf_0_cnt = 2'bxx;
+                    next_buf_1_cnt = 2'bxx;
+                    next_buf_2_cnt = 2'bxx;
+                    next_buf_3_cnt = 2'bxx;
+                end
+            endcase
+        end 
     end
-
-
 endmodule 
