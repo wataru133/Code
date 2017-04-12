@@ -19,16 +19,18 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
 
     output [1:0]buf_num_replc;
 
+    parameter FF_DLY  = 1;
+
     wire clk;
     wire rst_n;
     wire new_buf_req;
     wire [1:0]ref_buf_numbr;
  
-    wire [1:0]buf_num_replc;
+    reg [1:0]buf_num_replc;
 
-    reg [5:0] ref_seq ; // FF
-    reg [5:0] next_seq ; // non-FF
-    reg [1:0] oldest_buf ; // non-FF
+    reg  [5:0] ref_seq ; // FF
+    reg  [5:0] next_seq ; // non-FF
+    reg  [1:0] oldest_buf ; // non-FF
     wire [1:0] ref_numbr ;
 
     reg [1:0]buf_0_cnt;
@@ -43,16 +45,16 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
 
     always @ (posedge clk or negedge rst_n) begin
         if (rst_n==0) begin
-            next_buf_0_cnt <= 2'b01;
-            next_buf_1_cnt <= 2'b01;
-            next_buf_2_cnt <= 2'b01;
-            next_buf_3_cnt <= 2'b01;      
+            buf_0_cnt <= #FF_DLY 2'b01;
+            buf_1_cnt <= #FF_DLY 2'b01;
+            buf_2_cnt <= #FF_DLY 2'b01;
+            buf_3_cnt <= #FF_DLY 2'b01;      
         end
         else begin
-            next_buf_0_cnt <= buf_0_cnt;
-            next_buf_1_cnt <= buf_1_cnt;
-            next_buf_2_cnt <= buf_2_cnt;
-            next_buf_3_cnt <= buf_3_cnt;
+            buf_0_cnt <= #FF_DLY next_buf_0_cnt;
+            buf_1_cnt <= #FF_DLY next_buf_1_cnt;
+            buf_2_cnt <= #FF_DLY next_buf_2_cnt;
+            buf_3_cnt <= #FF_DLY next_buf_3_cnt;
         end
     end
 
@@ -82,31 +84,36 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
     
     always @ ( posedge clk ) begin
         if ( new_buf_req == 1'b1 ) begin
-            buf_num_replc[1:0] <= oldest_buf[1:0] ;
+            buf_num_replc[1:0] <= #FF_DLY oldest_buf[1:0] ;
         end
         else begin 
-            buf_num_replc[1:0] <= buf_num_replc[1:0];
+            buf_num_replc[1:0] <= #FF_DLY buf_num_replc[1:0];
         end
     end
 
-    assign ref_numbr[1:0] = ( new_buf_req == 1'b1 )?   
-            oldest_buf[1:0] : ref_buf_numbr[1:0] ;
+   // assign ref_numbr[1:0] = ( new_buf_req == 1'b1 )?   
+  //          oldest_buf[1:0] : ref_buf_numbr[1:0] ;
 
     always @ ( posedge clk or negedge rst_n ) begin
         if ( rst_n == 1'b0 ) begin // initialize reference sequence
-            ref_seq[5:0] <= 6'b111_11_1 ;
+            ref_seq[5:0] <= #FF_DLY 6'b111_11_1 ;
         end
         else begin
-            ref_seq[5:0] <= next_seq[5:0] ;
+            ref_seq[5:0] <= #FF_DLY next_seq[5:0] ;
         end
     end
 
-    always @ ( ref_seq[5:0] or ref_numbr[1:0] ) begin
-        ref_seq[5]= (next_buf_0_cnt)
+    always @ ( ref_seq[5:0] or ref_buf_numbr[1:0] ) begin
+        ref_seq[5]= (buf_0_cnt<buf_1_cnt)? 1:0;
+        ref_seq[4]= (buf_0_cnt<buf_2_cnt)? 1:0;
+        ref_seq[3]= (buf_0_cnt<buf_3_cnt)? 1:0;
+        ref_seq[2]= (buf_1_cnt<buf_2_cnt)? 1:0;
+        ref_seq[1]= (buf_1_cnt<buf_3_cnt)? 1:0;
+        ref_seq[0]= (buf_2_cnt<buf_3_cnt)? 1:0;
     end
 
-    always @ ( ref_seq[5:0] or ref_numbr[1:0] ) begin
-        case ( ref_numbr[1:0] )
+    always @ ( ref_seq[5:0] or ref_buf_numbr[1:0] ) begin
+        case ( ref_buf_numbr[1:0] )
             2'b00 : begin 
                 next_buf_0_cnt =  buf_0_cnt + 2'b01;
             end
@@ -123,12 +130,6 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
                 next_buf_3_cnt =  buf_3_cnt + 2'b01; 
             end
                 
-            default : begin
-                next_buf_0_cnt = 2'bxx;
-                next_buf_1_cnt = 2'bxx;
-                next_buf_2_cnt = 2'bxx;
-                next_buf_3_cnt = 2'bxx;
-            end
         endcase 
     end
 
