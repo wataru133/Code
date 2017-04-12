@@ -103,13 +103,13 @@ module lfu ( clk, rst_n, new_buf_req, ref_buf_numbr, buf_num_replc);
         end
     end
 
-    always @ ( ref_seq[5:0] or ref_buf_numbr[1:0] ) begin
-        ref_seq[5]= (buf_0_cnt<buf_1_cnt)? 1:0;
-        ref_seq[4]= (buf_0_cnt<buf_2_cnt)? 1:0;
-        ref_seq[3]= (buf_0_cnt<buf_3_cnt)? 1:0;
-        ref_seq[2]= (buf_1_cnt<buf_2_cnt)? 1:0;
-        ref_seq[1]= (buf_1_cnt<buf_3_cnt)? 1:0;
-        ref_seq[0]= (buf_2_cnt<buf_3_cnt)? 1:0;
+    always @ ( ref_seq[5:0] or buf_0_cnt or buf_1_cnt or buf_2_cnt or buf_3_cnt ) begin
+        ref_seq[5]= (buf_0_cnt>buf_1_cnt)? 0:1;
+        ref_seq[4]= (buf_0_cnt>buf_2_cnt)? 0:1;
+        ref_seq[3]= (buf_0_cnt>buf_3_cnt)? 0:1;
+        ref_seq[2]= (buf_1_cnt>buf_2_cnt)? 0:1;
+        ref_seq[1]= (buf_1_cnt>buf_3_cnt)? 0:1;
+        ref_seq[0]= (buf_2_cnt>buf_3_cnt)? 0:1;
     end
 
     always @ ( ref_buf_numbr[1:0] or buf_0_cnt or buf_1_cnt or buf_2_cnt or buf_3_cnt ) begin

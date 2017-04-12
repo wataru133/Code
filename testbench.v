@@ -1,9 +1,9 @@
 module test_lfu_finder ;
 
-    initial begin
-        $vcdplusfile ("testbench.vpd");
-	$vcdpluson ();
-end
+//    initial begin
+//        $vcdplusfile ("testbench.vpd");
+//	$vcdpluson ();
+//    end
 
     parameter HF_CYCL = 5 ;
     parameter CYCL = HF_CYCL*2 ;
@@ -29,11 +29,11 @@ end
         # CYCL      rst_n = 1'b1 ;
     end
 
-    always @ ( posedge clk ) begin
-        $strobe("t=%d, rst_n=%b, new_buf_req=%b, ref_buf_num= %d, buf_num_replc=%d, buf0=%d, buf1=%d, buf2=%d, buf3=%d , seq=%b",
-        $stime, rst_n, b_rq, ref, rplc, lfu.buf_0_cnt,  lfu.buf_1_cnt, lfu.buf_2_cnt,
-                lfu.buf_3_cnt, lfu.ref_seq,) ;
-    end
+   // always @ ( posedge clk ) begin
+     //   $strobe("t=%d, rst_n=%b, new_buf_req=%b, ref_buf_num= %d, buf_num_replc=%d, buf0=%d, buf1=%d, buf2=%d, buf3=%d , seq=%b",
+    //    $stime, rst_n, b_rq, ref, rplc, lfu.buf_0_cnt,  lfu.buf_1_cnt, lfu.buf_2_cnt,
+    //            lfu.buf_3_cnt, lfu.ref_seq,) ;
+  //  end
 
     initial begin
                     b_rq = 1'b0;
